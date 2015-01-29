@@ -4,6 +4,9 @@ EventInfoCollection::EventInfoCollection() : m_collectionID(0), m_data(new Event
 }
 
 const EventInfoHandle& EventInfoCollection::get(int index) const{
+  std::cout<<"number of handles "<<m_handles.size()<<std::endl;
+  for(auto& hand : m_handles)
+    std::cout<<&hand<<std::endl;
   return m_handles[index];
 }
 
@@ -27,7 +30,6 @@ EventInfoHandle EventInfoCollection::insert(const EventInfoHandle& origin) {
 void EventInfoCollection::clear(){
   m_data->clear();
   m_handles.clear();
-
 }
 
 void EventInfoCollection::prepareForWrite(const albers::Registry* registry){

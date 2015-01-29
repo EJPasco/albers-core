@@ -1,6 +1,7 @@
 // ROOT specific includes
 #include "TFile.h"
 #include "TTree.h"
+#include "TChain.h"
 #include "TROOT.h"
 
 // albers specific includes
@@ -9,6 +10,8 @@
 #include "albers/CollectionBase.h"
 
 #include <stdexcept>
+#include <glob.h>
+
 
 namespace albers {
 
@@ -23,6 +26,7 @@ namespace albers {
   void Reader::readRegistry(){
     // COLIN: worried about what happens if this function is called twice.
     m_registry = new Registry();
+    std::cout<<"read registry "<<m_file<<std::endl;
     TTree* metadatatree = (TTree*)m_file->Get("metadata");
     metadatatree->SetBranchAddress("Registry",&m_registry);
     metadatatree->GetEntry();
@@ -30,6 +34,7 @@ namespace albers {
   }
 
   CollectionBase* Reader::readCollection(const std::string& name) {
+    std::cout<<"reading "<<name<<std::endl;
     // has the collection already been constructed?
     auto p = std::find_if(begin(m_inputs), end(m_inputs),
 			  [name](Reader::Input t){ return t.second == name;});
@@ -61,21 +66,39 @@ namespace albers {
     m_inputs.emplace_back(std::make_pair(collection,name));
     // let the registry know about what happened
     m_registry->setPODAddress(name,buffer);
-
     branch->GetEntry(m_eventNumber);
     collection->prepareAfterRead(m_registry);
+    std::cout<<"done "<<name<<std::endl;
     return collection;
   }
 
+
+  
   void Reader::openFile(const std::string& filename){
-    m_file = new TFile(filename.c_str(),"READ","data file");
-    if(m_file->IsZombie()) {
-      throw std::runtime_error( std::string("file ") + filename + " does not exist." );
+    
+    glob_t glob_result;
+    glob(filename.c_str(),GLOB_TILDE,NULL,&glob_result);
+    if(glob_result.gl_pathc>1) {
+      TChain* chain = new TChain("events");
+      m_eventTree = chain;
+      for(unsigned int i=0;i<glob_result.gl_pathc;++i){
+	std::cout<<"chain file "<<glob_result.gl_pathv[i]<<std::endl;
+        chain->Add(glob_result.gl_pathv[i]);
+      }
+      m_file = chain->GetFile();
+      globfree(&glob_result);
     }
-    m_eventTree = (TTree*) m_file->Get("events");
+    else {
+      m_file = new TFile(glob_result.gl_pathv[0],"READ","data file");
+      if(m_file->IsZombie()) {
+	throw std::runtime_error( std::string("file ") + filename + " does not exist." );
+      }
+      m_eventTree = (TTree*) m_file->Get("events");
+    }
     readRegistry();
   }
 
+  
   void Reader::readEvent(){
     m_eventTree->GetEntry();
     // and now update all collections

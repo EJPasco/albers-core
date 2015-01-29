@@ -54,7 +54,7 @@ int main(){
   albers::EventStore store(&registry);
   albers::Writer     writer("example.root", &registry);
 
-  unsigned nevents=10000;
+  unsigned nevents=1;
 
   EventInfoCollection& evinfocoll = store.create<EventInfoCollection>("EventInfo");
   writer.registerForWrite<EventInfoCollection>("EventInfo");

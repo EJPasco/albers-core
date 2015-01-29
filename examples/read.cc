@@ -25,10 +25,15 @@ void processEvent(albers::EventStore& store, bool verbose,
 
   // read event information
   EventInfoCollection* evinfocoll(nullptr);
+  std::cout<<"accessing"<<std::endl;
   bool evinfo_available = store.get("EventInfo",evinfocoll);
+  std::cout<<"a"<<std::endl;
+  evinfocoll->print();
   if(evinfo_available) {
     const EventInfoHandle& evinfoHandle = evinfocoll->get(0);
+    std::cout<<"b "<<&evinfoHandle<<std::endl;
     const EventInfo& evinfo = evinfoHandle.read();
+    std::cout<<"c"<<std::endl;
     if(verbose)
       std::cout << "event number " << evinfo.Number << std::endl;
     // COLIN avoid bug at first event
@@ -49,17 +54,14 @@ int main(){
   albers::Reader reader;
   albers::EventStore store(nullptr);
   store.setReader(&reader);
-  reader.openFile("example.root");
+  reader.openFile("example*.root");
 
   bool verbose = true;
 
   // unsigned nEvents = 5;
   unsigned nEvents = reader.getEntries();
   for(unsigned i=0; i<nEvents; ++i) {
-    if(i%1000==0)
-      std::cout<<"reading event "<<i<<std::endl;
-    if(i>10)
-      verbose = false;
+    std::cout<<"reading event "<<i<<std::endl;
     processEvent(store, verbose, reader);
     store.endOfEvent();
     reader.endOfEvent();

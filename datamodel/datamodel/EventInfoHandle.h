@@ -42,7 +42,10 @@ public:
   bool isAvailable() const;
 
   // returns a const (read-only) reference to the object pointed by the Handle.
-  const EventInfo& read() const {return m_container->at(m_index);}
+  const EventInfo& read() const {
+    std::cout<<m_container<<" "<<m_index<<std::endl;
+    return m_container->at(m_index);
+  }
 
   // returns a non-const (writeable) reference to the object pointed by the Handle 
   EventInfo& mod() {return m_container->at(m_index);}

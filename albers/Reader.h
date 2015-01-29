@@ -28,7 +28,7 @@ class Registry;
 class Reader {
   friend EventStore;
   public:
-    Reader() : m_eventNumber(0) {}
+    Reader() : m_file(0), m_eventNumber(0) {}
     ~Reader();
     void openFile(const std::string& filename);
     void closeFile(){};
